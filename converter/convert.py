@@ -551,7 +551,9 @@ def convert_pks_synthase(old: JSON) -> JSON:
         }
         new["iterative"] = iterative
 
-#        self.trans_at = TransAT(raw.get("trans_at")) if "trans_at" in raw else None
+    trans_at = old.pop("trans_at", None)
+    if trans_at:
+        new["trans_at"] = {"genes": trans_at}
 
     assert not old, old
     return new
