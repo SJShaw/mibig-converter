@@ -346,6 +346,7 @@ def convert_genes(old: JSON) -> JSON:
             ("gene_id", "id"),
             ("gene_annotation", "product"),
             ("tailoring", "tailoring"),
+            ("gene_comments", "comments"),
         ], old_gene, new)
         name = new.get("name")
         if name is not None and name in ["", "No gene ID"]:
