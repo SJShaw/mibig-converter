@@ -582,6 +582,10 @@ def convert_pks(old: JSON) -> JSON:
         ("pks_release_type", "release_type"),
     ], old, new)
 
+    # merge pk_subclass and pks_subclass
+    if "pk_subclass" in old:
+        new["subclasses"].append(old.pop("pk_subclass"))
+
     commas_to_list(new, "release_type")
     if "lin_cycl_pk" in old:
         assert old["lin_cycl_pk"] in VALID_CYCLICS
