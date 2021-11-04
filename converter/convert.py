@@ -376,7 +376,7 @@ def convert_genes(old: JSON) -> Tuple[JSON, List[Any]]:
             if start is None or end is None:
                 warnings.warn(f"discarding external gene with no location: {new['name']}")
                 return None
-            warnings.warn(f"unhandled extra gene: {new['name']}")  # TODO
+            warnings.warn(f"unhandled extra gene: {new.get('name', gene.get('gene_id', '???'))}")  # TODO
             return None
 
         assert not old_gene, old_gene
