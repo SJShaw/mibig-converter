@@ -271,7 +271,13 @@ def convert_compounds(old: JSON) -> JSON:
 
         moieties = old_compound.pop("chem_moieties", None)
         if moieties:
-            new["chem_moieties"] = [convert_moiety(moiety) for moiety in moieties]
+            converted = []
+            for moiety in moieties:
+                new_moiety = convert_moiety(moiety)
+                if new_moiety:
+                    converted.append(new_moiety)
+            if converted:
+                new["chem_moieties"] = converted
 
         dbs = []
         for db in old_compound.pop("databases_deposited", []):
