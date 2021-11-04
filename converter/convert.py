@@ -596,6 +596,10 @@ def convert_pks(old: JSON) -> JSON:
         if synth["genes"]:
             new["synthases"] = [synth]
 
+    thio = old.pop("pks_te_type", None)
+    if thio and thio != "None":
+        assert False, thio
+
 #       self.cyclases = raw.get("cyclases")  # list[str]
 #        self.ketide_length = raw.get("ketide_length")  # int
     assert not old, old
