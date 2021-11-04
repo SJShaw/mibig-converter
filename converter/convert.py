@@ -101,8 +101,14 @@ def build_cluster(old: JSON) -> JSON:
         if evidence:
             conversions = {
                 "Proven expression in natural host": "Gene expression correlated with compound production",
+                "Other": None,
             }
-            loci["evidence"] = [conversions.get(ev, ev) for ev in evidence]
+            new_evs = []
+            for ev in evidence:
+                new_ev = conversions.get(ev, ev)
+                if new_ev is not None:
+                    new_evs.append(new_ev)
+            loci["evidence"] = new_evs
 
         assert not old, old
         return loci
