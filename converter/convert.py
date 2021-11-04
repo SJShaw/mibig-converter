@@ -179,9 +179,6 @@ def build_cluster(old: JSON) -> JSON:
     if "Other" in old:
         if old["Other"] == {"other_subclass": "other"}:
             old.pop("Other")
-    # loci
-    if "genes" in old:
-        new["genes"] = convert_genes(old.pop("genes"))
     # ripp
     # saccharide
     if "Saccharide" in old:
@@ -337,7 +334,7 @@ def convert_compounds(old: JSON) -> JSON:
     return compounds
 
 
-def convert_genes(old: JSON) -> JSON:
+def convert_genes(old: JSON) -> Tuple[JSON, List[Any]]:
     def convert_gene(old_gene: JSON) -> JSON:
         new = {}
         rename_optionals([
@@ -386,8 +383,17 @@ def convert_genes(old: JSON) -> JSON:
         return new
 
     new = {}
+    publications = []
     genes = []
     for gene in old.pop("gene", []):
+        if "gene_pubs" in gene:
+            pubs = gene.pop("gene_pubs")
+            for pub in pubs:
+                if not pub:
+                    continue
+                if pub == "None":
+                    continue
+                assert False, pub
         new_gene = convert_gene(gene)
         if new_gene is not None:
             genes.append(new_gene)
@@ -412,7 +418,7 @@ def convert_genes(old: JSON) -> JSON:
         new["operons"] = [op for op in valid if op]
 
     assert not old, old
-    return new
+    return new, publications
 
 
 def rename_optionals(keys: List[Tuple[str, str]], old: JSON, new: JSON) -> None:
