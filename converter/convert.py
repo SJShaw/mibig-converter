@@ -79,8 +79,11 @@ def build_cluster(old: JSON) -> JSON:
         accession_info = old.pop("nucl_acc")[0]
 
         completeness = old.pop("complete", "Unknown")
-        if completeness == "unknown":
-            completeness = "Unknown"
+        comp_mapping = {
+            "unknown": "Unknown",
+            "partial": "incomplete",
+        }
+        completeness = comp_mapping.get(completeness, completeness)
         loci = {
             "completeness": completeness,
             "accession": accession_info["Accession"],
