@@ -77,8 +77,11 @@ def build_cluster(old: JSON) -> JSON:
         assert len(old["nucl_acc"]) == 1
         accession_info = old.pop("nucl_acc")[0]
 
+        completeness = old.pop("complete", "Unknown")
+        if completeness == "unknown":
+            completeness = "Unknown"
         loci = {
-            "completeness": old.pop("complete", "Unknown"),
+            "completeness": completeness,
             "accession": accession_info["Accession"],
             "start_coord": accession_info["start_coord"],
             "end_coord": accession_info["end_coord"],
