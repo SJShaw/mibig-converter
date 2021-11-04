@@ -74,7 +74,8 @@ def convert(input_paths: Union[str, List[str]], output_dir: str) -> None:
 def build_cluster(old: JSON) -> JSON:
     def convert_loci(cluster: JSON) -> JSON:
         old = cluster.pop("loci")
-        assert len(old["nucl_acc"]) == 1
+        if len(old["nucl_acc"]) > 1:
+            warnings.warn("multiple reference accessions detected, using first")
         accession_info = old.pop("nucl_acc")[0]
 
         completeness = old.pop("complete", "Unknown")
