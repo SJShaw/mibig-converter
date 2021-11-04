@@ -95,7 +95,10 @@ def build_cluster(old: JSON) -> JSON:
 
         evidence = accession_info.pop("conn_comp_cluster", [])
         if evidence:
-            loci["evidence"] = evidence
+            conversions = {
+                "Proven expression in natural host": "Gene expression correlated with compound production",
+            }
+            loci["evidence"] = [conversions.get(ev, ev) for ev in evidence]
 
         assert not old, old
         return loci
