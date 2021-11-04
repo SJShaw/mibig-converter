@@ -187,7 +187,22 @@ def build_cluster(old: JSON) -> JSON:
     if "Saccharide" in old:
         new["saccharide"] = convert_sacc(old.pop("Saccharide"))
     # terpene
+    if "Terpene" in old:
+        new["terpene"] = convert_terpene(old.pop("Terpene"))
 
+    assert not old, old
+    return new
+
+
+def convert_terpene(old: JSON) -> JSON:
+    new = {}
+    rename_optionals([
+        ("terpene_subclass", "structural_subclass"),
+        ("prenyl_transf", "prenyltransferases"),
+        ("terpene_precursor", "terpene_precursor"),
+        ("terpene_synth_cycl", "terpene_synth_cycl"),
+        ("terpene_c_len", "carbon_count_subclass"),
+    ], old, new)
     assert not old, old
     return new
 
