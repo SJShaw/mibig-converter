@@ -17,7 +17,6 @@ class ConversionError(ValueError):
 
 def _gather_schemas(schema_dir: str) -> Dict[str, None]:
     schemas = {}
-    print(schema_dir)
     for schema_file in glob.glob(os.path.join(schema_dir, "*.json")):
         with open(schema_file) as handle:
             schema = json.load(handle)
@@ -64,7 +63,6 @@ def convert(input_paths: Union[str, List[str]], output_dir: str) -> None:
         return convert_single(input_paths, os.path.join(output_dir, os.path.basename(input_paths)))
     for i, path in enumerate(sorted(input_paths)):
         try:
-            print(os.path.basename(path))
             convert_single(path, os.path.join(output_dir, os.path.basename(path)))
         except (AssertionError, AttributeError, KeyError, ValueError):
             print(f"{i}: {os.path.basename(path)}")
@@ -191,7 +189,6 @@ def build_cluster(old: JSON) -> JSON:
         else:
             publications.append(publication)
     if not publications:
-        warnings.warn(f"{new['mibig_accession']} is missing publications, setting dummy")  # TODO
         publications.append("pubmed:000000")
     new["publications"] = sorted(publications, key=pub_cmp_parts)
     # organism_name
@@ -845,7 +842,6 @@ def transform(data: JSON, mibig_version: str) -> JSON:
     transformed["cluster"] = build_cluster(data.pop("general_params"))
 
     changelog = [
-        # TODO add submitter
         {
             "comments": [
                 "Add information lost in migration from 1.4 to 2.0"
@@ -856,7 +852,6 @@ def transform(data: JSON, mibig_version: str) -> JSON:
             "version": mibig_version
         }
     ]
-    warnings.warn("still using dummy changelog")  # TODO
     data.pop("changelog", None)
     transformed["changelog"] = changelog
 
