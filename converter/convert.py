@@ -589,6 +589,24 @@ def rename_optionals(keys: List[Tuple[str, str]], old: JSON, new: JSON) -> None:
 
 
 def convert_NRP(old: JSON) -> JSON:
+    def convert_module(old_module: JSON) -> JSON:
+        new = {}
+        rename_optionals([
+            ("module_nr", "module_number"),
+            ("cdom_subtype", "c_dom_subtype"),
+        ], old_module, new)
+
+        if new.get("module_number").lower() == "x":
+            new.pop("module_number")
+
+        if new.get("c_dom_subtype") in ["N/A", "None"]:
+            new.pop("c_dom_subtype")
+        if new.get("c_dom_subtype") in ["Other"]:
+            new["c_dom_subtype"] = "Unknown"
+
+        assert not old, old
+        return new
+
     new = {}
     rename_optionals([
         ("lipid_moiety", "lipid_moiety"),
@@ -596,25 +614,38 @@ def convert_NRP(old: JSON) -> JSON:
         ("nrps_release_type", "release_type"),
     ], old, new)
 
+    commas_to_list(new, "release_type")
+
     if "lin_cycl_nrp" in old:
         assert old["lin_cycl_nrp"] in VALID_CYCLICS
         new["cyclic"] = old.pop("lin_cycl_nrp") == "Cyclic"
 
     thios = []
-    thio_type = old.pop("nrps_te_type")
-    for thio in old.pop("nrps_thioesterase", []):
-        thios.append({
-            "gene": thio,
-            "thioesterase_type": thio_type,
-        })
+    if "nrps_thioesterase" in old or "nrps_te_type" in old:
+        thio_type = old.pop("nrps_te_type")
+        if thio_type in ["Both", "Other", "other", "None"]:
+            thio_type = "Unknown"
+        for thio in old.pop("nrps_thioesterase", []):
+            thios.append({
+                "gene": thio,
+                "thioesterase_type": thio_type,
+            })
     if thios:
         new["thioesterases"] = thios
 
     genes = []
     for gene in old.pop("nrps_genes", []):
+        if not gene:
+            continue
         modules = gene.pop("modules", [])
+        if not modules and "nrps_module" in gene:
+            modules = gene.pop("nrps_module")
         if modules:
-            gene["modules"] = sorted(modules, key=lambda module: module["module_nr"])
+            modules = [convert_module(module) for module in modules]
+            gene["modules"] = sorted(modules, key=lambda module: module.get("module_number", "ZZZ"))
+        rename_optionals([
+            ("nrps_gene", "gene_id"),
+        ], gene, gene)
         genes.append(gene)
     if genes:
         new["nrps_genes"] = genes
