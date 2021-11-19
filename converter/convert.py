@@ -713,6 +713,39 @@ def convert_pks_synthase(old: JSON) -> JSON:
             elif non_canonical_evidence != new["evidence"]:
                 new["non_canonical"]["evidence"] = non_canonical_evidence
                 commas_to_list(new["non_canonical"], "evidence")
+
+        # normalise domain naming
+        domain_mapping = {
+            "T": "Thiolation (ACP/PCP)",
+            "ACP": "Thiolation (ACP/PCP)",
+            "KS": "Ketosynthase",
+            "AT": "Acyltransferase",
+            "DH": "Dehydratase",
+            "KR": "Ketoreductase",
+            "ER": "Enoylreductase",
+            "TE": "Thioesterase",
+            "PT": "Product Template domain",
+            "SAT": "ACP transacylase",
+            "PPTASE": "Phosphopantetheinyl transferase",
+            "CAL": "CoA-ligase",
+            "FAAL": "CoA-ligase",  # BGC1160
+            "C": "Condensation",  # TODO: this probably shouldn't be allowed, since it's not a PKS domain (e.g. BGC1165)
+            "A": "Adenylation",  # TODO: this probably shouldn't be allowed, since it's not a PKS domain (e.g. BGC935)
+            "E": "Epimerization",
+            "ST": "Sulfotransferase",  # BGC1160
+            "CMET": "Methyltransferase",  # TODO: should this be more specific? (BGC1136 in 2.0 doesn't keep the C)
+            "TR": "Thiol reductase",  # TODO: should this have the space removed? (BGC1433)
+
+            "Thiolation (ACP/PCP)": "Thiolation (ACP/PCP)",
+            "Ketosynthase": "Ketosynthase",
+            "Acyltransferase": "Acyltransferase",
+            "Dehydratase": "Dehydratase",
+            "Ketoreductase": "Ketoreductase",
+            "Enoylreductase": "Enoylreductase",
+            "CoA-ligase": "CoA-ligase",
+        }
+        new["domains"] = [domain_mapping[dom] for dom in new["domains"]]
+
         assert not old_module, old_module
         return new
 
