@@ -525,6 +525,9 @@ def convert_genes(old: JSON) -> Tuple[JSON, List[Any]]:
         if name is not None and name in ["", "No gene ID"]:
             new.pop("name")
         commas_to_list(new, "tailoring")
+        tailoring = ["Unknown" if tail == "None" else tail for tail in new.get("tailoring", [])]
+        if tailoring:
+            new["tailoring"] = tailoring
         if "gene_function" in old_gene:
             new_function = {}
             rename_optionals([
