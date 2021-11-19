@@ -331,6 +331,9 @@ def convert_terpene(old: JSON) -> JSON:
 
 def convert_sacc(old: JSON) -> JSON:
     def convert_transferase(data: JSON) -> JSON:
+        if "gt_gene" not in data:
+            print("discarding incomplete glycosyltransferase")
+            return None
         new = {
             "gene_id": data.pop("gt_gene"),
             "specificity": data.pop("gt_specificity"),
