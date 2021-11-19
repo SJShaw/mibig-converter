@@ -224,6 +224,10 @@ def build_cluster(old: JSON) -> JSON:
     if "Terpene" in old:
         new["terpene"] = convert_terpene(old.pop("Terpene"))
 
+    if "Other" in old:
+        if old["Other"].get("other_subclass", "None") in ["None", "other"]:
+            old.pop("Other")
+
     assert not old, old
     return new
 
