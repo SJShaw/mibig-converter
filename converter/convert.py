@@ -765,12 +765,18 @@ def convert_pks(old: JSON) -> JSON:
         ("starter_unit", "starter_unit"),
         ("pks_subclass", "subclasses"),
         ("pks_release_type", "release_type"),
+        ("ketide_length", "ketide_length"),
+        ("cyclases", "cyclases"),
     ], old, new)
+
+    if new.get("ketide_length", 1) < 0:
+        new.pop("ketide_length")
 
     # merge pk_subclass and pks_subclass
     if "pk_subclass" in old:
         new["subclasses"].append(old.pop("pk_subclass"))
 
+    commas_to_list(new, "cyclases")
     commas_to_list(new, "release_type")
     if "lin_cycl_pk" in old:
         assert old["lin_cycl_pk"] in VALID_CYCLICS
@@ -785,8 +791,6 @@ def convert_pks(old: JSON) -> JSON:
     if thio and thio != "None":
         assert False, thio
 
-#       self.cyclases = raw.get("cyclases")  # list[str]
-#        self.ketide_length = raw.get("ketide_length")  # int
     assert not old, old
     return new
 
