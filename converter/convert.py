@@ -388,8 +388,8 @@ def convert_sacc(old: JSON) -> JSON:
 
 def convert_moiety(old: JSON) -> JSON:
     new = {}
-    subs = old.pop("moiety_subcluster")
-    if subs:
+    subs = old.pop("moiety_subcluster", old.pop("subcluster", None))
+    if subs and subs != "unknown":
         new["subcluster"] = subs
     name = old.pop("chem_moiety", "").lower()
     if name:
