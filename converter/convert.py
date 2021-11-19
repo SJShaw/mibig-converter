@@ -220,8 +220,16 @@ def build_cluster(old: JSON) -> JSON:
         new["polyketide"] = convert_pks(pks)
     # other
     if "Other" in old:
-        if old["Other"] == {"other_subclass": "other"}:
-            old.pop("Other")
+        old_other = old.pop("Other")
+        sub = old_other.pop("other_subclass", old_other.pop("biosyn_class", None))
+        if isinstance(sub, list):
+            sub = sub[0]
+        assert not old_other, old_other
+        if sub in ["other", "None"]:
+            sub = None
+        if sub:
+            new["other"] = {"subclass": sub}
+
     # ripp
     if "RiPP" in old:
         new["ripp"] = convert_ripp(old.pop("RiPP"))
