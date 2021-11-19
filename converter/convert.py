@@ -803,7 +803,7 @@ def transform(data: JSON, mibig_version: str) -> JSON:
         # TODO add submitter
         {
             "comments": [
-                "Migrated from v1.4"
+                "Add information lost in migration from 1.4 to 2.0"
             ],
             "contributors": [
                 "AAAAAAAAAAAAAAAAAAAAAAAA"
