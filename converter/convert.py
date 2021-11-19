@@ -143,18 +143,25 @@ def build_cluster(old: JSON) -> JSON:
     # publications
     publications = []
     existing = old.pop("publications", [])
-    # some are strings, comma separated, some are just strings
+    # some are strings, comma separated, some are colon separated, some are just strings
     if isinstance(existing, str):
-        existing = [ex.strip() for ex in existing.strip(" ,").split(",")]
+        if "," in existing:
+            existing = [ex.strip() for ex in existing.strip(" ,").split(",")]
+        elif ";" in existing:
+            existing = [ex.strip() for ex in existing.strip(" ;").split(";")]
+        else:
+            existing = [existing.strip()]
     # some are even lists of comma separated strings
     if isinstance(existing, list):
         new_pubs = []
         for pub in existing:
             if "," in pub:
-                new_pubs.extend(ex.strip() for ex in pub.strip(" ,").split(","))
+                new_pubs.extend(ex for ex in pub.strip(" ,").split(","))
+            elif ";" in pub:
+                new_pubs.extend(ex.strip() for ex in pub.strip(" ;").split(";"))
             else:
                 new_pubs.append(pub)
-        existing = new_pubs
+        existing = [pub.strip("' ") for pub in new_pubs]
     # some are buried in genes
     if "genes" in old:
         new["genes"], gene_publications = convert_genes(old.pop("genes"))
@@ -164,8 +171,18 @@ def build_cluster(old: JSON) -> JSON:
         assert "," not in publication, publication
         if publication.isdigit():
             publications.append(f"pubmed:{publication}")
+        elif publication.startswith("PMC") and publication[3:].isdigit():
+            publications.append(f"pubmed:{publication[3:]}")
         elif publication.startswith("10."):
             publications.append(f"doi:{publication}")
+        elif publication.startswith("doi:"):
+            publications.append(f"doi:{publication.split(':', 1)[1].strip()}")
+        elif publication.startswith("doi.org/"):
+            publications.append(f"doi:{publication.split('/', 1)[1].strip()}")
+        elif publication.startswith("https://doi.org/"):
+            publications.append(f"doi:{publication.split('/', 3)[3].strip()}")
+        elif publication in ["-", "unpublished"]:
+            continue
         else:
             publications.append(publication)
     if not publications:
@@ -410,6 +427,9 @@ def convert_genes(old: JSON) -> Tuple[JSON, List[Any]]:
                 if not pub:
                     continue
                 if pub == "None":
+                    continue
+                if pub.isdigit():
+                    publications.append(f"pubmed:{pub}")
                     continue
                 assert False, pub
         new_gene = convert_gene(gene)
