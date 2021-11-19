@@ -71,6 +71,18 @@ def convert(input_paths: Union[str, List[str]], output_dir: str) -> None:
             raise
 
 
+def pub_cmp_parts(pub):
+    """ A comparison function for sorting publications by:
+        - database, alphabetically; then
+        - publication number, numerically and reversed
+
+    """
+    tag, value = pub.split(":", 1)
+    if value.isdigit():
+        value = int(value) * -1  # to reverse on the int portion only, so newer publications from the same source are at the top
+    return tag, value
+
+
 def build_cluster(old: JSON) -> JSON:
     def convert_loci(cluster: JSON) -> JSON:
         old = cluster.pop("loci")
@@ -153,7 +165,7 @@ def build_cluster(old: JSON) -> JSON:
     if not publications:
         warnings.warn(f"{new['mibig_accession']} is missing publications, setting dummy")  # TODO
         publications.append("pubmed:000000")
-    new["publications"] = publications
+    new["publications"] = sorted(publications, key=pub_cmp_parts)
     # organism_name
     warnings.warn("missing organism name lookups")
     new["organism_name"] = "missing"  # TODO
