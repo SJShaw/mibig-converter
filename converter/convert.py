@@ -563,6 +563,10 @@ def convert_genes(old: JSON) -> Tuple[JSON, List[Any]]:
         for operon in operons:
             if not operon or not operon.get("operon_genes"):
                 continue
+            evidence = [ev for ev in operon.pop("evidence", operon.pop("evidence_operon", [])) if ev != "Other"]
+            if not evidence:
+                print("discarding operon", operon, "due to missing evidence")
+                continue
             op_genes = operon.pop("operon_genes")
             if op_genes:
                 operon["genes"] = op_genes
@@ -570,10 +574,6 @@ def convert_genes(old: JSON) -> Tuple[JSON, List[Any]]:
                 ("evidence_operon", "evidence"),
             ], operon, operon)
             commas_to_list(operon, "evidence")
-            evidence = [ev for ev in operon.pop("evidence", []) if ev != "Other"]
-            if not evidence:
-                print("discarding operon", operon, "due to missing evidence")
-                continue
             operon["evidence"] = evidence
         new["operons"] = [op for op in valid if op]
 
