@@ -131,6 +131,12 @@ def build_cluster(old: JSON) -> JSON:
     # loci
     new["mibig_accession"] = old.pop("mibig_accession")
     new["biosyn_class"] = old.pop("biosyn_class")
+    if "Nucleoside" in new["biosyn_class"]:
+        new["biosyn_class"] = [cl for cl in new["biosyn_class"] if cl != "Nucleoside"]
+        assert "Other" not in old or old["Other"]["other_subclass"] == "None"
+        new["biosyn_class"].append("Other")
+        old["Other"] = {"other_subclass": "nucleoside"}
+
     new["loci"] = convert_loci(old)
     # compounds
     new["compounds"] = convert_compounds(old.pop("compounds"))
