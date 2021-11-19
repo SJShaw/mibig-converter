@@ -508,6 +508,9 @@ def convert_genes(old: JSON) -> Tuple[JSON, List[Any]]:
                 ("gene_function", "category"),
                 ("evidence_genefunction", "evidence"),
             ], old_gene, new_function)
+            if not new.get("category", None):
+                # don't go on to check evidence for a function that doesn't exist
+                return new
             evidence = new_function.pop("evidence", [])
             if new_function["category"] == "Unknown":
                 evidence = []  # no function? no evidence!
