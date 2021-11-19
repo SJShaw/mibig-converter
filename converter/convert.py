@@ -398,7 +398,8 @@ def convert_moiety(old: JSON) -> JSON:
             new["moiety"] = old.pop(key)
         else:
             new["moiety"] = name
-
+    if "moiety" not in new:
+        return None  # BGC361
     assert not old, old
     return new
 
