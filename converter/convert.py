@@ -655,11 +655,6 @@ def convert_NRP(old: JSON) -> JSON:
 
 
 def convert_pks_synthase(old: JSON) -> JSON:
-    def convert_pks_gene(old_gene: JSON) -> JSON:
-        new = {}
-        assert not old_gene, old_gene
-        return new
-
     def convert_module(old_module: JSON) -> JSON:
         new = {}
         rename_optionals([
