@@ -370,7 +370,9 @@ def convert_sacc(old: JSON) -> JSON:
     for transferase in old.pop("gt_genes", []):
         old_sugars = transferase.pop("sugar_subcluster", "")
         assert isinstance(old_sugars, str), old_sugars
-        sugars.append([sug.strip() for sug in old_sugars.strip().split(",")])
+        sugar_sections = [sug.strip() for sug in old_sugars.strip().split(",") if sug.strip()]
+        if sugar_sections:
+            sugars.append(sugar_sections)
         trans = convert_transferase(transferase)
         if trans:
             transferases.append(trans)
