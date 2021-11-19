@@ -111,6 +111,8 @@ def build_cluster(old: JSON) -> JSON:
 
         evidence = accession_info.pop("conn_comp_cluster", [])
         if evidence:
+            if isinstance(evidence, str):
+                evidence = [ev.strip() for ev in evidence.strip().split(",")]
             conversions = {
                 "Proven expression in natural host": "Gene expression correlated with compound production",
                 "Other": None,
@@ -120,7 +122,8 @@ def build_cluster(old: JSON) -> JSON:
                 new_ev = conversions.get(ev, ev)
                 if new_ev is not None:
                     new_evs.append(new_ev)
-            loci["evidence"] = new_evs
+            if new_evs:
+                loci["evidence"] = new_evs
 
         assert not old, old
         return loci
@@ -234,6 +237,19 @@ def build_cluster(old: JSON) -> JSON:
     return new
 
 
+def trim_evidence(data: JSON, mapping: Dict[str, str]) -> None:
+    if "evidence" not in data:
+        return
+    invalid = ["Other", "N/A", "None"]
+    evidence = data.pop("evidence")
+    if isinstance(evidence, list):
+        evidence = [mapping.get(item.strip(), item.strip()) for item in evidence if item not in invalid]
+    else:
+        evidence = mapping.get(evidence.strip(), evidence.strip())
+    if evidence:
+        data["evidence"] = evidence
+
+
 def convert_ripp(old: JSON) -> JSON:
     def convert_precursor(old_pre: JSON) -> JSON:
         if not old_pre.get("gene_id"):
@@ -316,10 +332,16 @@ def convert_sacc(old: JSON) -> JSON:
         else:
             if new["specificity"] == "Other":
                 new["specificity"] = data.pop("other_gt_spec")
-        evidence = data.pop("evidence_gt_spec")
+        evidence = data.pop("evidence_gt_spec", None)
+        if evidence is None:
+            evidence = ["Sequence-based prediction"]  # TODO more yuck
         if isinstance(evidence, str):
             evidence = [evidence]
+        conversion = {
+            "structure-based inference": "Structure-based inference",
+        }
         new["evidence"] = evidence
+        trim_evidence(new, conversion)
 
         assert not data, data
         return new
@@ -609,13 +631,12 @@ def convert_pks_synthase(old: JSON) -> JSON:
         if non_canonical != "Neither":
             new["non_canonical"] = {}
             new["non_canonical"][mapping[non_canonical]] = True
-        if non_canonical_evidence is not None and non_canonical_evidence != "Other":
+        if non_canonical_evidence is not None and non_canonical_evidence not in ["Other", "None"]:
             if new.get("evidence") is None:
                 new["evidence"] = non_canonical_evidence  # TODO also iffy
             elif non_canonical_evidence != new["evidence"]:
-                print(non_canonical_evidence, new["evidence"])
-                assert non_canonical_evidence == new["evidence"]
-
+                new["non_canonical"]["evidence"] = non_canonical_evidence
+                commas_to_list(new["non_canonical"], "evidence")
         assert not old_module, old_module
         return new
 
