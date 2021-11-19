@@ -766,7 +766,7 @@ def convert_pks_synthase(old: JSON) -> JSON:
     new["genes"] = []
     new["genes"].extend(gene["mod_pks_gene"] for gene in old.get("mod_pks_genes", []))
     new["genes"].extend(old.pop("pks_genes", []))
-    new["genes"].sort()
+    new["genes"] = sorted(new["genes"])  # removes duplicates, e.g. BGC153
     modules = []
     for gene in old.pop("mod_pks_genes", []):
         old_modules = gene.pop("pks_module", [])
