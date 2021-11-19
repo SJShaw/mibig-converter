@@ -700,7 +700,7 @@ def convert_pks_synthase(old: JSON) -> JSON:
         commas_to_list(new, "at_specificities")
         commas_to_list(new, "pks_mod_doms")
 
-        if "at_specifities" in new:
+        if "at_specificities" in new:
             mapping = {
                 "None": "Unknown",
             }
