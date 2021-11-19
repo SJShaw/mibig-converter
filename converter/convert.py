@@ -98,7 +98,7 @@ def build_cluster(old: JSON) -> JSON:
         completeness = comp_mapping.get(completeness, completeness)
         loci = {
             "completeness": completeness,
-            "accession": accession_info["Accession"],
+            "accession": accession_info["Accession"].strip(),
             "start_coord": accession_info["start_coord"],
             "end_coord": accession_info["end_coord"],
         }
