@@ -706,6 +706,7 @@ def convert_pks_synthase(old: JSON) -> JSON:
     new["genes"] = []
     new["genes"].extend(gene["mod_pks_gene"] for gene in old.get("mod_pks_genes", []))
     new["genes"].extend(old.pop("pks_genes", []))
+    new["genes"].sort()
     modules = []
     for gene in old.pop("mod_pks_genes", []):
         old_modules = gene.pop("pks_module", [])
@@ -714,7 +715,7 @@ def convert_pks_synthase(old: JSON) -> JSON:
             module["gene"] = name
             modules.append(convert_module(module))
     if modules:
-        new["modules"] = sorted(modules, key=lambda module: module["module_number"])
+        new["modules"] = sorted(modules, key=lambda module: module.get("module_number", "ZZZ"))
 
     rename_optionals([
         ("pufa_mod_doms", "pufa_modification_domains"),
