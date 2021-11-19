@@ -425,20 +425,34 @@ def convert_compounds(old: JSON) -> JSON:
             new["evidence"].extend(old_compound.pop("evidence_struct"))
 
         mol_mass = new.get("mol_mass")
+        if mol_mass is not None and float(mol_mass) < 0:
+            new.pop("mol_mass")
+            mol_mass = None
         if mol_mass is not None and not isinstance(mol_mass, float):
             new["mol_mass"] = float(mol_mass)
+
+        if new.get("mass_spec_ion_type") in ["None"]:
+            new.pop("mass_spec_ion_type")
 
         if "chem_acts" in new:
             extras = old_compound.pop("other_chem_act", [])
             if isinstance(extras, str):
                 extras = []
             new["chem_acts"].extend(extras)
+        trimmed_acts = []
+        for act in new.pop("chem_acts", []):
+            if act.lower() == "unknown":
+                continue
+            trimmed_acts.append(act)
+        if trimmed_acts:
+            new["chem_acts"] = trimmed_acts
 
         targets = old_compound.pop("chem_target", [])
         if targets:
             if isinstance(targets, str):
-                targets = [targets]
-            new["chem_targets"] = [{"target": target} for target in targets]
+                targets = [t.strip() for t in targets.split(",") if t != "unknown"]
+            if targets:
+                new["chem_targets"] = [{"target": target} for target in targets]
 
         moieties = old_compound.pop("chem_moieties", None)
         if moieties:
