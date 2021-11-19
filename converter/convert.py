@@ -575,7 +575,9 @@ def convert_genes(old: JSON) -> Tuple[JSON, List[Any]]:
             ], operon, operon)
             commas_to_list(operon, "evidence")
             operon["evidence"] = evidence
-        new["operons"] = [op for op in valid if op]
+        operons = [op for op in valid if op]
+        if operons:
+            new["operons"] = operons
 
     assert not old, old
     return new, publications
