@@ -92,6 +92,15 @@ def pub_cmp_parts(pub):
     return tag, value
 
 
+def module_cmp(mod):
+    num = mod.get("module_number", "?")
+    try:
+        num = int(num)
+    except ValueError:
+        return -1, mod.get("genes", [])
+    return num, mod.get("genes", [])
+
+
 def build_cluster(old: JSON) -> JSON:
     def convert_loci(cluster: JSON) -> JSON:
         old = cluster.pop("loci")
@@ -660,7 +669,7 @@ def convert_NRP(old: JSON) -> JSON:
             modules = gene.pop("nrps_module")
         if modules:
             modules = [convert_module(module) for module in modules]
-            gene["modules"] = sorted(modules, key=lambda module: module.get("module_number", "ZZZ"))
+            gene["modules"] = sorted(modules, key=module_cmp)
         rename_optionals([
             ("nrps_gene", "gene_id"),
         ], gene, gene)
@@ -786,7 +795,7 @@ def convert_pks_synthase(old: JSON) -> JSON:
             module["gene"] = name
             modules.append(convert_module(module))
     if modules:
-        new["modules"] = sorted(modules, key=lambda module: module.get("module_number", "ZZZ"))
+        new["modules"] = sorted(modules, key=module_cmp)
 
     rename_optionals([
         ("pufa_mod_doms", "pufa_modification_domains"),
