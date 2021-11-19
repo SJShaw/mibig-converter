@@ -440,6 +440,8 @@ def convert_compounds(old: JSON) -> JSON:
             new["chem_acts"].extend(extras)
         trimmed_acts = []
         for act in new.pop("chem_acts", []):
+            if not act:
+                continue
             if act.lower() == "unknown":
                 continue
             trimmed_acts.append(act)
