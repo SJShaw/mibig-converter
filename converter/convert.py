@@ -668,8 +668,22 @@ def convert_pks_synthase(old: JSON) -> JSON:
         ], old_module, new)
         commas_to_list(new, "genes")
         commas_to_list(new, "at_specificities")
+        commas_to_list(new, "pks_mod_doms")
 
-        if new.get("evidence") == "Other":
+        if "pks_other_mod_dom" in old_module:
+            commas_to_list(old_module, "pks_other_mod_dom")
+            if "pks_mod_doms" not in new:
+                new["pks_mod_doms"] = []
+            new["pks_mod_doms"].extend(old_module.pop("pks_other_mod_dom"))
+
+        if new.get("module_number", "").lower() == "x":
+            new.pop("module_number")
+
+        comment = old_module.pop("comments", None)
+        if comment and comment != "None":
+            new["comment"] = comment
+
+        if new.get("evidence") in ["Other", "None"]:
             new.pop("evidence")
 
         stereo = new.get("kr_stereochem")
@@ -680,7 +694,7 @@ def convert_pks_synthase(old: JSON) -> JSON:
 
         # remove modification domains if the old value was just saying there were none
         mods = new.get("pks_mod_doms")
-        if not mods or mods == "None":
+        if not mods or mods == "None" or mods == ["None"]:
             new.pop("pks_mod_doms")
 
         non_canonical = old_module.pop("pks_mod_skip_iter", "Neither")
@@ -723,8 +737,8 @@ def convert_pks_synthase(old: JSON) -> JSON:
     ], old, new)
     commas_to_list(new, "subclass")
     thios = []
-    thio_type = old.pop("pks_te_type")
-    if thio_type in ["Both", "Other"]:
+    thio_type = old.pop("pks_te_type", None)
+    if thio_type in ["Both", "Other", "other", "None"]:
         thio_type = "Unknown"
     for thio in old.pop("pks_thioesterase", []):
         thios.append({
@@ -740,6 +754,9 @@ def convert_pks_synthase(old: JSON) -> JSON:
             "subtype": old.pop("iterative_subtype"),
             "cyclization_type": old.pop("iter_cycl_type", "Unknown"),
         }
+        if iterative["nr_iterations"] == -1:
+            warnings.warn("defaulting invalid iteration count to 1")
+            iterative["nr_iterations"] = 1
         new["iterative"] = iterative
 
     trans_at = old.pop("trans_at", None)
@@ -782,14 +799,9 @@ def convert_pks(old: JSON) -> JSON:
         assert old["lin_cycl_pk"] in VALID_CYCLICS
         new["cyclic"] = old.pop("lin_cycl_pk") == "Cyclic"
 
-    if "mod_pks_genes" in old or "pks_genes" in old:  # genes are required in new synthase annotations
-        synth = convert_pks_synthase(old)
-        if synth["genes"]:
-            new["synthases"] = [synth]
-
-    thio = old.pop("pks_te_type", None)
-    if thio and thio != "None":
-        assert False, thio
+    synth = convert_pks_synthase(old)
+    if synth["genes"]:
+        new["synthases"] = [synth]
 
     assert not old, old
     return new
