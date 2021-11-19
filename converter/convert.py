@@ -406,7 +406,7 @@ def convert_moiety(old: JSON) -> JSON:
 def convert_compounds(old: JSON) -> JSON:
     def convert_compound(old_compound: JSON) -> JSON:
         new = {
-            "compound": old_compound.pop("compound"),
+            "compound": old_compound.pop("compound").strip(),
         }
         rename_optionals([
             ("chem_synonyms", "chem_synonyms"),
