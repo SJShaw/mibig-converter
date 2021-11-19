@@ -164,8 +164,10 @@ def build_cluster(old: JSON) -> JSON:
         existing = [pub.strip("' ") for pub in new_pubs]
     # some are buried in genes
     if "genes" in old:
-        new["genes"], gene_publications = convert_genes(old.pop("genes"))
+        new_genes, gene_publications = convert_genes(old.pop("genes"))
         existing.extend(gene_publications)
+        if new_genes:
+            new["genes"] = new_genes
     # but eventually they should just be single strings in a list
     for publication in existing:
         assert "," not in publication, publication
