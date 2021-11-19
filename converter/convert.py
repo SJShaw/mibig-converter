@@ -827,9 +827,16 @@ def transform(data: JSON, mibig_version: str) -> JSON:
     data.pop("changelog", None)
     transformed["changelog"] = changelog
 
+    if "comments" in data and "Comments" in data:
+        data["comments"].append(data.pop("Comments"))
+    rename_optionals([
+        ("comments", "comments"),
+        ("Comments", "comments"),
+    ], data, transformed)
+
     # discard embargo
     data.pop("embargo", None)
-
+    assert not data, data
     return transformed
 
 
