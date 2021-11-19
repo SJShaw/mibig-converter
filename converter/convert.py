@@ -561,6 +561,8 @@ def convert_genes(old: JSON) -> Tuple[JSON, List[Any]]:
         operons = old.pop("operon")
         valid = []
         for operon in operons:
+            if not operon or not operon.get("operon_genes"):
+                continue
             op_genes = operon.pop("operon_genes")
             if op_genes:
                 operon["genes"] = op_genes
