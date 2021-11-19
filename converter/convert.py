@@ -677,6 +677,12 @@ def convert_pks_synthase(old: JSON) -> JSON:
         commas_to_list(new, "at_specificities")
         commas_to_list(new, "pks_mod_doms")
 
+        if "at_specifities" in new:
+            mapping = {
+                "None": "Unknown",
+            }
+            new["at_specificities"] = [mapping.get(spec, spec) for spec in new["at_specificities"]]
+
         if "pks_other_mod_dom" in old_module:
             commas_to_list(old_module, "pks_other_mod_dom")
             if "pks_mod_doms" not in new:
