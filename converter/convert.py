@@ -214,7 +214,10 @@ def build_cluster(old: JSON) -> JSON:
             new["alkaloid"]["subclass"] = old_alk.pop("alkaloid_subclass")
     # polyketide
     if "Polyketide" in old:
-        new["polyketide"] = convert_pks(old.pop("Polyketide"))
+        pks = old.pop("Polyketide")
+        if "Saccharide" in pks:  # BGC151
+            old["Saccharide"] = pks.pop("Saccharide")
+        new["polyketide"] = convert_pks(pks)
     # other
     if "Other" in old:
         if old["Other"] == {"other_subclass": "other"}:
