@@ -11,6 +11,16 @@ JSON = Dict[str, Any]
 VALID_CYCLICS = {"Cyclic", "Unknown", "Linear"}
 
 
+def whitespace_destroyer(data: Any) -> Any:
+    if isinstance(data, str):
+        return data.strip().replace("  ", " ")
+    if isinstance(data, dict):
+        return {whitespace_destroyer(k): whitespace_destroyer(v) for k, v in data.items()}
+    if isinstance(data, list):
+        return [whitespace_destroyer(v) for v in data]
+    return data
+
+
 class ConversionError(ValueError):
     pass
 
@@ -44,10 +54,11 @@ def convert_single(input_path: str, output_path: str, target_schema: str = LATES
 
     # convert
     after = transform(before, mibig_version)
+    stripped = whitespace_destroyer(after)
 
     # write
     with open(output_path, "w") as handle:
-        json.dump(after, handle, indent=4, sort_keys=True)
+        json.dump(stripped, handle, indent=4, sort_keys=True)
 
     # ensure the result is valid according to the chosen schema
     try:
