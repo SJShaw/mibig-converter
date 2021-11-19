@@ -362,8 +362,10 @@ def convert_sacc(old: JSON) -> JSON:
 
     new = {}
 
+    assert not ("saccharide_subclass" in old and "Sugar_subclass" in old)
     rename_optionals([
         ("saccharide_subclass", "subclass"),
+        ("Sugar_subclass", "subclass"),
     ], old, new)
     commas_to_list(new, "sugar_subclusters")
     transferases = []
