@@ -217,6 +217,8 @@ def build_cluster(old: JSON) -> JSON:
         if old["Other"] == {"other_subclass": "other"}:
             old.pop("Other")
     # ripp
+    if "RiPP" in old:
+        new["ripp"] = convert_ripp(old.pop("RiPP"))
     # saccharide
     if "Saccharide" in old:
         new["saccharide"] = convert_sacc(old.pop("Saccharide"))
@@ -227,6 +229,61 @@ def build_cluster(old: JSON) -> JSON:
     if "Other" in old:
         if old["Other"].get("other_subclass", "None") in ["None", "other"]:
             old.pop("Other")
+
+    assert not old, old
+    return new
+
+
+def convert_ripp(old: JSON) -> JSON:
+    def convert_precursor(old_pre: JSON) -> JSON:
+        if not old_pre.get("gene_id"):
+            return None
+        new = {
+            "gene_id": old_pre.pop("gene_id"),
+        }
+        rename_optionals([
+            ("core_pept_aa", "core_sequence"),
+            ("crosslinks", "crosslinks"),
+            ("cleavage_recogn_site", "cleavage_recogn_site"),
+            ("recogn_motif", "recognition_motif"),
+        ], old_pre, new)
+        commas_to_list(new, "cleavage_recogn_site")
+        if isinstance(new.get("gene_id"), list) and new["gene_id"]:
+            new["gene_id"] = new["gene_id"][0]
+        old_pre.pop("foll_pept_len", None)
+        old_pre.pop("lead_pept_len", None)
+        old_pre.pop("peptidase", None)
+        commas_to_list(new, "core_sequence")
+        new_links = []
+        for crosslink in new.get("crosslinks", []):
+            rename_optionals([
+                ("AA_pos_1", "first_AA"),
+                ("AA_pos_2", "second_AA"),
+            ], crosslink, crosslink)
+            new_links.append(crosslink)
+        assert not old_pre, old_pre
+        return new
+    new = {}
+    rename_optionals([
+        ("ripp_subclass", "subclass"),
+        ("lead_pept_len", "lead_pept_len"),
+        ("peptidase", "peptidase"),
+    ], old, new)
+    cyc = old.pop("lin_cycl_ripp", "").lower()
+    if cyc == "cyclic":
+        new["cyclic"] = True
+    elif cyc == "linear":
+        new["cyclic"] = False
+    else:
+        assert cyc == "", cyc
+
+    precursors = []
+    for pre in old.pop("precursor_loci", []):
+        new_pre = convert_precursor(pre)
+        if new_pre:
+            precursors.append(new_pre)
+    if precursors:
+        new["precursor_genes"] = precursors
 
     assert not old, old
     return new
