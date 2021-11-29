@@ -104,44 +104,36 @@ def module_cmp(mod):
 def build_cluster(old: JSON) -> JSON:
     def convert_loci(cluster: JSON) -> JSON:
         old = cluster.pop("loci")
-        if len(old["nucl_acc"]) > 1:
-            warnings.warn("multiple reference accessions detected, using first")
-        accession_info = old.pop("nucl_acc")[0]
+        loci = []
+        for accession_info in old.pop("nucl_acc"):
+            loci.append({
+                "accession": accession_info["Accession"].strip(),
+                "start_coord": accession_info["start_coord"],
+                "end_coord": accession_info["end_coord"],
+            })
+            latest = loci[-1]
+            for coord in ["start_coord", "end_coord"]:
+                if latest[coord] == -1:
+                    latest.pop(coord)
+            if latest.get("start_coord") == 0:
+                latest["start_coord"] = 1
+            warnings.warn("mixs_compliant not checked or added")  # TODO mixs_compliant -> bool
 
-        completeness = old.pop("complete", "Unknown")
-        comp_mapping = {
-            "unknown": "Unknown",
-            "partial": "incomplete",
-        }
-        completeness = comp_mapping.get(completeness, completeness)
-        loci = {
-            "completeness": completeness,
-            "accession": accession_info["Accession"].strip(),
-            "start_coord": accession_info["start_coord"],
-            "end_coord": accession_info["end_coord"],
-        }
-        for coord in ["start_coord", "end_coord"]:
-            if loci[coord] == -1:
-                loci.pop(coord)
-        if loci.get("start_coord") == 0:
-            loci["start_coord"] = 1
-        warnings.warn("mixs_compliant not checked or added")  # TODO mixs_compliant -> bool
-
-        evidence = accession_info.pop("conn_comp_cluster", [])
-        if evidence:
-            if isinstance(evidence, str):
-                evidence = [ev.strip() for ev in evidence.strip().split(",")]
-            conversions = {
-                "Proven expression in natural host": "Gene expression correlated with compound production",
-                "Other": None,
-            }
-            new_evs = []
-            for ev in evidence:
-                new_ev = conversions.get(ev, ev)
-                if new_ev is not None:
-                    new_evs.append(new_ev)
-            if new_evs:
-                loci["evidence"] = new_evs
+            evidence = accession_info.pop("conn_comp_cluster", [])
+            if evidence:
+                if isinstance(evidence, str):
+                    evidence = [ev.strip() for ev in evidence.strip().split(",")]
+                conversions = {
+                    "Proven expression in natural host": "Gene expression correlated with compound production",
+                    "Other": None,
+                }
+                new_evs = []
+                for ev in evidence:
+                    new_ev = conversions.get(ev, ev)
+                    if new_ev is not None:
+                        new_evs.append(new_ev)
+                if new_evs:
+                    latest["evidence"] = new_evs
 
         assert not old, old
         return loci
@@ -158,7 +150,19 @@ def build_cluster(old: JSON) -> JSON:
         new["biosyn_class"].append("Other")
         old["Other"] = {"other_subclass": "nucleoside"}
 
+    completeness = old["loci"].pop("complete", None)
+    comp_mapping = {
+        "unknown": None,
+        "partial": False,
+        "incomplete": False,
+        "complete": True,
+    }
+    completeness = comp_mapping.get(completeness, completeness)
+    assert isinstance(completeness, bool) or completeness is None, completeness
+    if completeness is not None:
+       new["completeness"] = completeness
     new["loci"] = convert_loci(old)
+    assert isinstance(new["loci"], list)
     # compounds
     new["compounds"] = convert_compounds(old.pop("compounds"))
     # publications
@@ -218,7 +222,10 @@ def build_cluster(old: JSON) -> JSON:
     warnings.warn("missing NCBI tax ID lookups")
     new["ncbi_tax_id"] = "-1"  # TODO
     # minimal
-    new["minimal"] = old.pop("minimal", new.get("loci", {}).get("evidence") is None)
+    if "minimal" in old:
+        new["minimal"] = old.pop("minimal")
+    else:
+        new["minimal"] = all(loci.get("evidence") is None for loci in new.get("loci", []))
 
     # optionals:
     if "NRP" in old:
