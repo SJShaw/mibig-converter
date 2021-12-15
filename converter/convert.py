@@ -165,7 +165,7 @@ def build_cluster(old: JSON) -> JSON:
     completeness = comp_mapping.get(completeness, completeness)
     assert isinstance(completeness, bool) or completeness is None, completeness
     if completeness is not None:
-       new["completeness"] = completeness
+       new["complete"] = completeness
     new["loci"] = convert_loci(old)
     assert isinstance(new["loci"], list)
     # compounds

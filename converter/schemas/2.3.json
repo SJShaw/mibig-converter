@@ -406,7 +406,7 @@
                     "title": "Genes in this gene cluster",
                     "type": "object"
                 },
-                "completeness": {
+                "complete": {
                     "title": "Whether the cluster is complete",
                     "type": "boolean"
                 },
