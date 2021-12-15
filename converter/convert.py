@@ -874,6 +874,33 @@ def convert_pks(old: JSON) -> JSON:
     if "pk_subclass" in old:
         new["subclasses"].append(old.pop("pk_subclass"))
 
+    product_subclasses = []
+    synthase_subclasses = []
+    subclasses = new.pop("subclasses", [])
+    for sub in subclasses:
+        if sub in {"None"}:
+            continue
+        mapping = {
+            "Modular Type I": "Modular type I",
+            "Iterative typeI": "Iterative type I",
+        }
+        sub = mapping.get(sub, sub)
+        if sub in {"Type I", "Type II", "Modular type I", "Iterative type I", "Enediyne type I", "Trans-AT type I", "Type III", }:
+            synthase_subclasses.append(sub)
+        elif sub in {
+                "Other", "Polyene", "Macrolide", "PUFA synthase or related",
+                "Polyphenol", "Enediyine", "Ansamycin", "Polyether", "Aryl polyene",
+                "Tetracycline", "Benzoisochromanequinone", "Anthracycline",
+                "Tetracenomycin", "Angucycline", "Chalcone",
+                }:
+            product_subclasses.append(sub)
+        else:
+            print("new type:", sub)
+    if product_subclasses:
+        new["subclasses"] = product_subclasses
+    if synthase_subclasses:
+        new["synthase_types"] = synthase_subclasses
+
     commas_to_list(new, "cyclases")
     commas_to_list(new, "release_type")
     if "lin_cycl_pk" in old:
