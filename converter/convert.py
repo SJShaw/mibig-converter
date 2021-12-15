@@ -13,11 +13,12 @@ VALID_CYCLICS = {"Cyclic", "Unknown", "Linear"}
 
 def whitespace_destroyer(data: Any) -> Any:
     if isinstance(data, str):
+        assert data
         return data.strip().replace("  ", " ")
     if isinstance(data, dict):
-        return {whitespace_destroyer(k): whitespace_destroyer(v) for k, v in data.items()}
+        return {whitespace_destroyer(k): whitespace_destroyer(v) for k, v in data.items() if v}
     if isinstance(data, list):
-        return [whitespace_destroyer(v) for v in data]
+        return [whitespace_destroyer(v) for v in data if v]
     return data
 
 
@@ -54,7 +55,11 @@ def convert_single(input_path: str, output_path: str, target_schema: str = LATES
 
     # convert
     after = transform(before, mibig_version)
-    stripped = whitespace_destroyer(after)
+    try:
+        stripped = whitespace_destroyer(after)
+    except AssertionError:
+        print(input_path)
+        raise
 
     # write
     with open(output_path, "w") as handle:
